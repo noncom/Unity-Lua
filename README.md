@@ -1,3 +1,7 @@
+# What's different in this fork
+
+Added custom code for better VM initialization, debug output and maybe some other stuff.
+
 # Unity-Lua
 A wrapper around MoonSharp that allows easy development of moddable Unity games
 
