@@ -358,7 +358,7 @@ public class LuaVM {
                     result = m_LuaScript.Call(func, args);
                 }
                 catch (InterpreterException ex) {
-                    Logger.Log(Channel.Lua, Priority.FatalError, "Lua error calling function '{0}': {1}:\n--------- CLR ---------\n{2}\n --------- LUA ---------\n{3}", functionName, ex.DecoratedMessage, ex.InnerException?.StackTrace, StringifyStacktrace(ex.CallStack));
+                    LogException(functionName, ex);
                     throw;
                 }
                 //catch (Exception ex) {
@@ -373,6 +373,71 @@ public class LuaVM {
         return result;
     }
 
+    public void LogException(string functionName, InterpreterException ex) {
+        if (ex.InnerException != null) {
+            var inner = ex.InnerException;
+            if (inner.InnerException != null) {
+                Logger.Log(Channel.Lua, Priority.FatalError, 
+                    "Lua error A calling function '{0}':\n\n" +
+                    "message = {1}\n" +
+                    "decorated = {2}\n\n" +
+                    "--------- CLR 1 ---------\n\n" +
+                    "inner message = {3}\n\n" +
+                    "inner stack trace:\n{4}\n\n" +
+                    "--------- CLR 2 ---------\n\n" +
+                    "inner message 2x = {5}\n\n" +
+                    "inner stack trace 2x:\n{6}\n\n" + 
+                    " --------- LUA ---------\n" +
+                    "{7}",
+                    functionName,
+                    ex.Message,
+                    ex.DecoratedMessage,
+                    /* -- clr 1 -- */
+                    ex.InnerException?.Message,
+                    ex.InnerException?.StackTrace,
+                    /* -- clr 2 -- */
+                    ex.InnerException?.InnerException?.Message,
+                    ex.InnerException?.InnerException?.StackTrace,
+                    
+                    StringifyStacktrace(ex.CallStack));
+            }
+            else {
+                Logger.Log(Channel.Lua, Priority.FatalError, 
+                    "Lua error B calling function '{0}':\n\n" +
+                    "message = {1}\n" +
+                    "decorated = {2}\n\n" +
+                    "--------- CLR ---------\n\n" +
+                    "inner message = {3}\n\n" +
+                    "inner stack trace:\n{4}\n\n" + 
+                    " --------- LUA ---------\n" +
+                    "{5}",
+                    functionName,
+                    ex.Message,
+                    ex.DecoratedMessage,
+                    ex.InnerException?.Message,
+                    ex.InnerException?.StackTrace,
+                    StringifyStacktrace(ex.CallStack));
+            }
+        }
+        else {
+            Logger.Log(Channel.Lua, Priority.FatalError, 
+                "Lua error C calling function '{0}':\n\n" +
+                "message = {1}\n" +
+                "decorated = {2}\n\n" +
+                "--------- CLR ---------\n\n" +
+                "message = {3}\n\n" +
+                "stack trace:\n{4}\n\n" + 
+                " --------- LUA ---------\n" +
+                "{5}",
+                functionName,
+                ex.Message,
+                ex.DecoratedMessage,
+                ex.Message,
+                ex.StackTrace,
+                StringifyStacktrace(ex.CallStack));
+        }
+    }
+    
     /// <summary>
     /// Starts the remote debugger and opens the interface in the users browser
     /// </summary>
