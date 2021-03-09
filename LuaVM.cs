@@ -314,12 +314,29 @@ public class LuaVM {
             }
         }
         else {
-            Logger.Log(Channel.Lua, Priority.FatalError, "Invalid lua function passed to LuaVM::Call");
+            string description;
+            if (luaFunc.Type == DataType.Table) {
+                description = $"{luaFunc.Type} / {luaFunc.ToDebugPrintString()} / {PrintDebug(luaFunc.Table)}";
+            }
+            else {
+                description = $"{luaFunc.Type} / {luaFunc.ToDebugPrintString()}";
+            }
+            Logger.Log(Channel.Lua, Priority.FatalError, $"Invalid lua function passed to LuaVM::Call: [{description}]");
         }
 
         return result;
     }
 
+    public static string PrintDebug(Table table) {
+        var maybePr = table.OwnerScript.Globals.Get("pr");
+        if (maybePr.Type == DataType.Table) {
+            return maybePr.Table.Get("table").Function.Call(table).String;
+        }
+        else {
+            return "[..pr.table() is not available..]";
+        }
+    }
+    
     string StringifyStacktrace(IList<WatchItem> callstack) {
         StringBuilder sb = new StringBuilder();
         
