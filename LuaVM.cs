@@ -310,7 +310,13 @@ public class LuaVM {
                 result = m_LuaScript.Call(luaFunc, args);
             }
             catch (ScriptRuntimeException ex) {
-                Logger.Log(Channel.Lua, Priority.FatalError, "Lua Call error: {0}", ex.DecoratedMessage);
+                Logger.Log(Channel.Lua, Priority.FatalError, "[ScriptRuntimeException] Lua Call error: [EXCEPTION]  Message: {0}\n CallStack:{1}\n\n Stack trace:\n{2}\n\n [SOURCE]  Message: {3}\n Stack trace:\n{4}", ex.DecoratedMessage, StringifyStacktrace(ex.CallStack), ex.StackTrace, ex.InnerException?.Message, ex.InnerException?.StackTrace);
+            }
+            catch (CSharpException ex) {
+                 Logger.Log(Channel.Lua, Priority.FatalError, "[CSharpException] Lua Call error: [EXCEPTION] Message: {0}\n CallStack:{1}\n\n Stack trace:\n{2}\n\n [SOURCE]  Message: {3}\n Stack trace:\n{4}", ex.DecoratedMessage, StringifyStacktrace(ex.CallStack), ex.StackTrace, ex.InnerException?.Message, ex.InnerException?.StackTrace);
+            }
+            catch (Exception ex) {
+                Logger.Log(Channel.Lua, Priority.FatalError, $"[{ex.GetType()}] Lua Call error: [EXCEPTION] Message: {0}\n Stack trace:\n{1}\n\n [SOURCE]  Message: {2}\n Stack trace:\n{3}", ex.Message, ex.StackTrace, ex.InnerException?.Message, ex.InnerException?.StackTrace);
             }
         }
         else {
